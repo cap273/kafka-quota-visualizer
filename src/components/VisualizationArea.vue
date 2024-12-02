@@ -76,20 +76,39 @@ export default defineComponent({
     // Initialize partitionsByBroker when the component is created
     initializePartitionsByBroker();
 
-    // Watch for changes in configuration to re-initialize partitionsByBroker
+    // Watch for changes in numBrokers and numPartitions to re-initialize partitionsByBroker
     watch(
-      () => [
-        props.configuration.numBrokers,
-        ...props.configuration.topics.map((topic) => [
-          topic.topicName,
-          topic.numPartitions,
-          topic.produceRate,
-          ...topic.partitionsDistribution.map(p => p.partitionKey), // Simplify dependencies
-        ]),
-      ],
-      () => {
+      () => ({
+        numBrokers: props.configuration.numBrokers,
+        topics: props.configuration.topics.map(topic => ({
+          topicName: topic.topicName,
+          numPartitions: topic.numPartitions,
+        })),
+      }),
+      (newValues, oldValues) => {
+        console.log('VisualizationArea detected configuration changes:', newValues);
         if (!isUserUpdating.value) {
-          initializePartitionsByBroker();
+          const numBrokersChanged = newValues.numBrokers !== oldValues.numBrokers;
+          const topicsChanged =
+            newValues.topics.length !== oldValues.topics.length ||
+            newValues.topics.some(
+              (topic, index) =>
+                topic.numPartitions !== (oldValues.topics[index]?.numPartitions || 0)
+            );
+
+          if (numBrokersChanged) {
+            console.log('Number of brokers has changed.');
+          }
+
+          if (topicsChanged) {
+            console.log('Number of partitions in one or more topics has changed.');
+          }
+
+          if (numBrokersChanged || topicsChanged) {
+            initializePartitionsByBroker();
+          } else {
+            console.log('No relevant changes detected in VisualizationArea. Skipping initialization.');
+          }
         }
       },
       { deep: true }

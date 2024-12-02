@@ -6,7 +6,7 @@
     </v-card-title>
     <v-card-text>
       <div>
-        <strong>Produce Rate:</strong>
+        <strong>Requested Produce Rate:</strong>
         {{ formattedProduceRate }} MB/s
       </div>
       <!-- Conditionally render Throttled Throughput only if 'Per Partition' quota is selected -->
